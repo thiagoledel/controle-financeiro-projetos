@@ -1,0 +1,58 @@
+version: '3.8'
+
+# Ambiente de desenvolvimento completo com Node.js 20 para API e frontend.
+# Todos os serviços rodam em containers — nenhum prerequisito local além do Docker.
+# Hot reload habilitado via volumes que montam os diretórios src do host.
+services:
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: financial_tracker
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d financial_tracker"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile.dev
+    ports:
+      - "3001:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/financial_tracker
+      PORT: 3001
+      NODE_ENV: development
+    volumes:
+      # Monta apenas os fontes para hot reload — node_modules permanece no container.
+      - ./apps/api/src:/app/apps/api/src
+      - ./packages/shared/src:/app/packages/shared/src
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile.dev
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+    environment:
+      # Aponta o proxy do Vite para o serviço api dentro da rede Docker.
+      VITE_API_TARGET: http://api:3001
+    volumes:
+      # Monta apenas os fontes para hot reload — node_modules permanece no container.
+      - ./apps/web/src:/app/apps/web/src
+      - ./packages/shared/src:/app/packages/shared/src
+
+volumes:
+  postgres_data:

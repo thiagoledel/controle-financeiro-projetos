@@ -1,0 +1,23 @@
+# Imagem de desenvolvimento da API.
+# Usa Node.js 20 com ts-node-dev para hot reload — não faz build, executa TypeScript diretamente.
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copia somente os manifests primeiro para aproveitar cache de camadas do Docker.
+COPY package*.json ./
+COPY packages/shared/package*.json ./packages/shared/
+COPY apps/api/package*.json ./apps/api/
+
+# Instala todas as dependências (incluindo devDependencies) necessárias para ts-node-dev.
+RUN npm install
+
+# Copia o restante dos fontes.
+COPY tsconfig.base.json ./
+COPY packages/shared ./packages/shared
+COPY apps/api ./apps/api
+
+EXPOSE 3001
+
+# Inicia o servidor com hot reload via ts-node-dev.
+CMD ["npm", "run", "dev", "--workspace=apps/api"]

@@ -1,0 +1,23 @@
+# Imagem de desenvolvimento do frontend.
+# Usa Node.js 20 com Vite dev server para hot reload (HMR).
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copia somente os manifests primeiro para aproveitar cache de camadas do Docker.
+COPY package*.json ./
+COPY packages/shared/package*.json ./packages/shared/
+COPY apps/web/package*.json ./apps/web/
+
+# Instala todas as dependências.
+RUN npm install
+
+# Copia o restante dos fontes.
+COPY tsconfig.base.json ./
+COPY packages/shared ./packages/shared
+COPY apps/web ./apps/web
+
+EXPOSE 5173
+
+# Inicia o Vite dev server exposto em 0.0.0.0 para ser acessível fora do container.
+CMD ["npm", "run", "dev", "--workspace=apps/web"]
