@@ -19,31 +19,31 @@ import { EntradaFinanceira } from './EntradaFinanceira';
 @Unique(['projetoId', 'month', 'year'])
 export class AtualizacaoMensal {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   // Relação N:1 com Projeto.
   @ManyToOne(() => Projeto, (projeto) => projeto.updates)
   @JoinColumn({ name: 'projeto_id' })
-  projeto: Projeto;
+  projeto!: Projeto;
 
   @Column({ name: 'projeto_id' })
-  projetoId: number;
+  projetoId!: number;
 
   // Mês de referência (1 a 12).
   @Column({ name: 'mes', type: 'int' })
-  month: number;
+  month!: number;
 
   // Ano de referência (>= 2000).
   @Column({ name: 'ano', type: 'int' })
-  year: number;
+  year!: number;
 
   // Uma atualização mensal pode ter múltiplas entradas financeiras.
   @OneToMany(() => EntradaFinanceira, (entrada) => entrada.atualizacaoMensal)
-  entries: EntradaFinanceira[];
+  entries!: EntradaFinanceira[];
 
   @CreateDateColumn({ name: 'criado_em' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'atualizado_em' })
-  updatedAt: Date;
+  updatedAt!: Date;
 }

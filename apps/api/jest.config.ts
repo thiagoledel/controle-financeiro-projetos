@@ -26,6 +26,9 @@ const config: Config = {
   testEnvironmentOptions: {
     env: { NODE_ENV: 'test' },
   },
+  // Força o encerramento do processo após todos os testes — necessário porque o supertest
+  // mantém handles abertos nos testes de integração.
+  forceExit: true,
 };
 
 export default config;

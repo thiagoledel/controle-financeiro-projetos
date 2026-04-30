@@ -14,31 +14,31 @@ import { AtualizacaoMensal } from './AtualizacaoMensal';
 @Entity('entradas_financeiras')
 export class EntradaFinanceira {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   // Relação N:1 com AtualizacaoMensal.
   @ManyToOne(() => AtualizacaoMensal, (atualizacao) => atualizacao.entries)
   @JoinColumn({ name: 'atualizacao_mensal_id' })
-  atualizacaoMensal: AtualizacaoMensal;
+  atualizacaoMensal!: AtualizacaoMensal;
 
   @Column({ name: 'atualizacao_mensal_id' })
-  atualizacaoMensalId: number;
+  atualizacaoMensalId!: number;
 
   // Receita bruta em reais (precisão de 15 dígitos com 2 casas decimais).
   @Column({ name: 'receita', type: 'decimal', precision: 15, scale: 2 })
-  revenue: number;
+  revenue!: number;
 
   // Margem percentual entre 0.00 e 100.00.
   @Column({ name: 'margem', type: 'decimal', precision: 5, scale: 2 })
-  margin: number;
+  margin!: number;
 
   // Descrição textual da entrada financeira.
   @Column({ name: 'descricao', type: 'text' })
-  description: string;
+  description!: string;
 
   @CreateDateColumn({ name: 'criado_em' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'atualizado_em' })
-  updatedAt: Date;
+  updatedAt!: Date;
 }

@@ -30,9 +30,9 @@ class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryStat
             <p className="text-white/50 text-sm mb-6">{this.state.message}</p>
             <button
               className="px-4 py-2 bg-primary-700 hover:bg-primary-900 text-white rounded-lg text-sm font-medium transition-colors"
-              onClick={() => this.setState({ hasError: false, message: '' })}
+              onClick={() => window.location.reload()}
             >
-              Tentar novamente
+              Recarregar página
             </button>
           </div>
         </div>

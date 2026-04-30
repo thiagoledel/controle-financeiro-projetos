@@ -13,18 +13,18 @@ import { Projeto } from './Projeto';
 @Entity('clientes')
 export class Cliente {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ name: 'nome', nullable: false })
-  name: string;
+  name!: string;
 
   // Um cliente pode ter múltiplos projetos associados.
   @OneToMany(() => Projeto, (projeto) => projeto.cliente)
-  projects: Projeto[];
+  projects!: Projeto[];
 
   @CreateDateColumn({ name: 'criado_em' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'atualizado_em' })
-  updatedAt: Date;
+  updatedAt!: Date;
 }

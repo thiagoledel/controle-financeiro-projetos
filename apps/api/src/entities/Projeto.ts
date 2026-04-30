@@ -16,27 +16,27 @@ import { AtualizacaoMensal } from './AtualizacaoMensal';
 @Entity('projetos')
 export class Projeto {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ name: 'nome', nullable: false })
-  name: string;
+  name!: string;
 
   // Relação N:1 com Cliente — cada projeto pertence a um único cliente.
   @ManyToOne(() => Cliente, (cliente) => cliente.projects)
   @JoinColumn({ name: 'cliente_id' })
-  cliente: Cliente;
+  cliente!: Cliente;
 
   // Expõe o valor da FK diretamente para facilitar inserções sem carregar a relação.
   @Column({ name: 'cliente_id' })
-  clienteId: number;
+  clienteId!: number;
 
   // Um projeto pode ter múltiplas atualizações mensais.
   @OneToMany(() => AtualizacaoMensal, (atualizacao) => atualizacao.projeto)
-  updates: AtualizacaoMensal[];
+  updates!: AtualizacaoMensal[];
 
   @CreateDateColumn({ name: 'criado_em' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'atualizado_em' })
-  updatedAt: Date;
+  updatedAt!: Date;
 }

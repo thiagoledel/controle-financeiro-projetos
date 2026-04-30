@@ -28,10 +28,13 @@ export function errorHandler(
   if (err instanceof QueryFailedError) {
     const driver = (err as unknown as { driverError: PostgresDriverError }).driverError;
 
-    // 23505 = unique_violation: registro duplicado (ex: mês/ano já existe para o projeto).
+    // 23505 = unique_violation: ocorre quando mês/ano já existe para o projeto ou nome duplicado.
     if (driver?.code === '23505') {
       res.status(409).json({
-        error: { message: 'Registro duplicado', statusCode: 409 },
+        error: {
+          message: 'Já existe um registro com esses dados. Verifique se o mês/ano já foi cadastrado para este projeto.',
+          statusCode: 409,
+        },
       });
       return;
     }
