@@ -7,6 +7,7 @@ import { config } from 'dotenv';
 import { AppDataSource } from './database/dataSource';
 import router from './routes';
 import { errorHandler } from './middlewares/errorHandler';
+import { logger } from './lib/logger';
 
 // Carrega variáveis de ambiente antes de qualquer outra inicialização.
 config();
@@ -14,14 +15,31 @@ config();
 const app = express();
 const PORT = process.env.PORT ?? 3001;
 
-// Middlewares de segurança, parsing e rate limiting.
+// Em desenvolvimento, aceita requisições apenas do servidor de desenvolvimento do frontend.
+// Em produção, CORS deve ser configurado via variável de ambiente CORS_ORIGIN.
+const allowedOrigin =
+  process.env.NODE_ENV === 'production'
+    ? (process.env.CORS_ORIGIN ?? false)
+    : 'http://localhost:5173';
+
+// Middlewares de segurança: helmet adiciona headers HTTP defensivos.
 app.use(helmet());
-app.use(cors());
+app.use(
+  cors({
+    origin: allowedOrigin,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }),
+);
 app.use(express.json());
+
+// Rate limiting: máximo de 100 requisições por IP a cada 15 minutos.
 app.use(
   rateLimit({
-    windowMs: 15 * 60 * 1000, // janela de 15 minutos
-    max: 100,                  // máximo de 100 requisições por janela por IP
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
   }),
 );
 
@@ -32,15 +50,16 @@ app.use('/api', router);
 app.use(errorHandler);
 
 // Inicializa a conexão com o banco e só então inicia o servidor HTTP.
+// Isso garante que os repositórios TypeORM estejam prontos antes de qualquer requisição.
 AppDataSource.initialize()
   .then(() => {
-    console.log('Conexão com o banco de dados estabelecida.');
+    logger.info('Conexão com o banco de dados estabelecida');
     app.listen(PORT, () => {
-      console.log(`Servidor rodando em http://localhost:${PORT}`);
+      logger.info({ port: PORT }, `Servidor rodando em http://localhost:${PORT}`);
     });
   })
-  .catch((error) => {
-    console.error('Falha ao conectar ao banco de dados:', error);
+  .catch((error: Error) => {
+    logger.error({ err: error }, 'Falha ao conectar ao banco de dados');
     process.exit(1);
   });
 

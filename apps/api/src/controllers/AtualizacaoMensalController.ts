@@ -2,54 +2,51 @@ import { Request, Response, NextFunction } from 'express';
 import { AtualizacaoMensalService } from '../services/AtualizacaoMensalService';
 
 // Controller de atualizações mensais.
-const service = new AtualizacaoMensalService();
-
+// Lê o projetoId do parâmetro de rota :projetoId (rota aninhada /projetos/:projetoId/atualizacoes).
 export class AtualizacaoMensalController {
+  constructor(private readonly service: AtualizacaoMensalService) {}
+
+  // Lista todas as atualizações do projeto especificado na rota.
   async index(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // Permite filtrar pelo projetoId via query string: /atualizacoes-mensais?projetoId=1
-      if (req.query.projetoId) {
-        const atualizacoes = await service.findByProjeto(Number(req.query.projetoId));
-        res.json(atualizacoes);
-        return;
-      }
-      const atualizacoes = await service.findAll();
-      res.json(atualizacoes);
+      const data = await this.service.findByProjeto(Number(req.params.projetoId));
+      res.json({ data, message: 'Atualizações mensais recuperadas com sucesso' });
     } catch (error) {
       next(error);
     }
   }
 
+  // Busca atualização por ID verificando que pertence ao projeto da rota.
   async show(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const atualizacao = await service.findById(Number(req.params.id));
-      res.json(atualizacao);
+      const data = await this.service.findByIdAndProjeto(
+        Number(req.params.id),
+        Number(req.params.projetoId),
+      );
+      res.json({ data, message: 'Atualização mensal encontrada' });
     } catch (error) {
       next(error);
     }
   }
 
+  // Cria atualização mensal para o projeto especificado na rota.
+  // O body contém apenas { month, year } — o projetoId vem do parâmetro de rota.
   async create(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const atualizacao = await service.create(req.body);
-      res.status(201).json(atualizacao);
+      const data = await this.service.create(req.body, Number(req.params.projetoId));
+      res.status(201).json({ data, message: 'Atualização mensal criada com sucesso' });
     } catch (error) {
       next(error);
     }
   }
 
-  async update(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const atualizacao = await service.update(Number(req.params.id), req.body);
-      res.json(atualizacao);
-    } catch (error) {
-      next(error);
-    }
-  }
-
+  // Remove a atualização e suas entradas financeiras (cascade via FK no banco).
   async destroy(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      await service.delete(Number(req.params.id));
+      await this.service.delete(
+        Number(req.params.id),
+        Number(req.params.projetoId),
+      );
       res.status(204).send();
     } catch (error) {
       next(error);

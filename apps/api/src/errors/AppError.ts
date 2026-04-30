@@ -1,13 +1,12 @@
-// Classe de erro customizada com statusCode HTTP.
-// Usada para distinguir erros operacionais (negócio) de erros inesperados de sistema.
+// Classe de erro customizada para erros de negócio e validação HTTP.
+// Permite distinguir falhas operacionais (esperadas) de erros inesperados do sistema.
 export class AppError extends Error {
-  public readonly statusCode: number;
-  public readonly isOperational: boolean;
-
-  constructor(message: string, statusCode = 400, isOperational = true) {
+  constructor(
+    public readonly message: string,
+    public readonly statusCode: number = 400,
+  ) {
     super(message);
-    this.statusCode = statusCode;
-    this.isOperational = isOperational;
+    // Restaura o prototype correto ao extender Error no TypeScript compilado para ES5.
     Object.setPrototypeOf(this, AppError.prototype);
   }
 }
