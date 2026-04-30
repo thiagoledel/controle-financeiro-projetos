@@ -8,30 +8,38 @@ interface ModalProps {
   children: ReactNode;
 }
 
-// Modal com overlay semitransparente.
-// Acessibilidade: captura foco ao abrir, restaura ao fechar, fecha com ESC ou clique no overlay.
 export function Modal({ isOpen, onClose, title, children }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
-  // Guarda o elemento focado antes de abrir o modal para restaurar ao fechar.
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
-  // Fecha o modal ao pressionar ESC.
+  // Mantém onClose sempre atualizado no ref sem colocá-lo nas deps do useEffect,
+  // evitando que o listener de keydown seja re-registrado a cada render do pai.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
+  // Registra listener de ESC apenas quando isOpen muda, não a cada render do pai.
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') onCloseRef.current();
     };
     if (isOpen) {
       document.addEventListener('keydown', handleKey);
     }
     return () => document.removeEventListener('keydown', handleKey);
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
-  // Gerencia o foco: captura ao abrir e restaura ao fechar.
+  // Gerencia foco: captura o elemento ativo antes de abrir, restaura ao fechar.
+  // O foco do container só é aplicado se nenhum filho já tiver foco (ex: autoFocus).
   useEffect(() => {
     if (isOpen) {
       previousFocusRef.current = document.activeElement as HTMLElement;
-      // Usa setTimeout para garantir que o DOM já renderizou o modal antes de focar.
-      setTimeout(() => modalRef.current?.focus(), 0);
+      setTimeout(() => {
+        if (modalRef.current && !modalRef.current.contains(document.activeElement)) {
+          modalRef.current.focus();
+        }
+      }, 0);
     } else {
       previousFocusRef.current?.focus();
     }
@@ -46,7 +54,6 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
       aria-labelledby="modal-title"
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
     >
-      {/* Overlay: clicar fora fecha o modal */}
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}

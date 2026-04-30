@@ -10,6 +10,7 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 1000 * 60 * 5,
       retry: 1,
+      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 15000),
     },
   },
 });

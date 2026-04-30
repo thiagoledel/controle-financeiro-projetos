@@ -7,9 +7,9 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "jest",
-    "migration:run": "ts-node -r tsconfig-paths/register node_modules/.bin/typeorm migration:run -d src/database/dataSource.ts",
-    "migration:generate": "ts-node -r tsconfig-paths/register node_modules/.bin/typeorm migration:generate -d src/database/dataSource.ts",
-    "migration:revert": "ts-node -r tsconfig-paths/register node_modules/.bin/typeorm migration:revert -d src/database/dataSource.ts",
+    "migration:run": "ts-node -r tsconfig-paths/register ../../node_modules/.bin/typeorm migration:run -d src/database/dataSource.ts",
+    "migration:generate": "ts-node -r tsconfig-paths/register ../../node_modules/.bin/typeorm migration:generate -d src/database/dataSource.ts",
+    "migration:revert": "ts-node -r tsconfig-paths/register ../../node_modules/.bin/typeorm migration:revert -d src/database/dataSource.ts",
     "seed": "ts-node -r tsconfig-paths/register src/database/seed.ts"
   },
   "dependencies": {
