@@ -1,92 +1,131 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { Projeto } from '@controle-financeiro/shared';
 import PageHeader from '../../components/layout/PageHeader';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
-import { Spinner } from '../../components/ui/Spinner';
-import { useProjetos, useCreateProjeto, useDeleteProjeto } from '../../hooks/useProjetos';
+import { DataTable } from '../../components/ui/DataTable';
+import {
+  useProjetos,
+  useCreateProjeto,
+  useUpdateProjeto,
+  useDeleteProjeto,
+} from '../../hooks/useProjetos';
 import { useClientes } from '../../hooks/useClientes';
 
-// Página de listagem de projetos com criação e exclusão inline.
+const colHelper = createColumnHelper<Projeto>();
+
 export default function ProjetosPage() {
   const navigate = useNavigate();
-  const { data: projetos, isLoading } = useProjetos();
-  const { data: clientes } = useClientes();
+  const { data: projetos = [], isLoading } = useProjetos();
+  const { data: clientes = [] } = useClientes();
   const createProjeto = useCreateProjeto();
+  const updateProjeto = useUpdateProjeto();
   const deleteProjeto = useDeleteProjeto();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   const [newName, setNewName] = useState('');
-  const [selectedClienteId, setSelectedClienteId] = useState<number | ''>('');
+  const [newClienteId, setNewClienteId] = useState<number | ''>('');
+
+  const [editProjeto, setEditProjeto] = useState<Projeto | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editClienteId, setEditClienteId] = useState<number | ''>('');
+
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
   async function handleCreate() {
-    if (!newName.trim() || !selectedClienteId) return;
-    await createProjeto.mutateAsync({ name: newName.trim(), clienteId: Number(selectedClienteId) });
+    if (!newName.trim() || !newClienteId) return;
+    await createProjeto.mutateAsync({ name: newName.trim(), clienteId: Number(newClienteId) });
     setNewName('');
-    setSelectedClienteId('');
-    setIsModalOpen(false);
+    setNewClienteId('');
+    setCreateOpen(false);
+  }
+
+  async function handleEdit() {
+    if (!editProjeto || !editName.trim() || !editClienteId) return;
+    await updateProjeto.mutateAsync({
+      id: editProjeto.id,
+      dto: { name: editName.trim(), clienteId: Number(editClienteId) },
+    });
+    setEditProjeto(null);
   }
 
   const clienteOptions = [
-    { value: '', label: 'Selecione um cliente' },
-    ...(clientes?.map((c) => ({ value: c.id, label: c.name })) ?? []),
+    { value: '' as string | number, label: 'Selecione um cliente' },
+    ...clientes.map((c) => ({ value: c.id, label: c.name })),
   ];
+
+  const columns = useMemo(
+    () => [
+      colHelper.accessor('id', {
+        header: 'ID',
+        cell: (info) => <span className="text-white/50">#{info.getValue()}</span>,
+      }),
+      colHelper.accessor('name', {
+        header: 'Nome',
+        cell: (info) => <span className="font-medium text-white">{info.getValue()}</span>,
+      }),
+      colHelper.display({
+        id: 'cliente',
+        header: 'Cliente',
+        cell: ({ row }) => (
+          <span className="text-white/60">{row.original.cliente?.name ?? '—'}</span>
+        ),
+      }),
+      colHelper.display({
+        id: 'acoes',
+        header: 'Ações',
+        cell: ({ row }) => (
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => navigate(`/projetos/${row.original.id}`)}
+            >
+              Detalhes
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                setEditProjeto(row.original);
+                setEditName(row.original.name);
+                setEditClienteId(row.original.clienteId);
+              }}
+            >
+              Editar
+            </Button>
+            <Button
+              size="sm"
+              variant="danger"
+              onClick={() => setDeleteId(row.original.id)}
+            >
+              Remover
+            </Button>
+          </div>
+        ),
+      }),
+    ],
+    [navigate],
+  );
+
+  const table = useReactTable({ data: projetos, columns, getCoreRowModel: getCoreRowModel() });
 
   return (
     <div>
       <PageHeader
         title="Projetos"
         subtitle="Gerencie os projetos cadastrados"
-        actions={
-          <Button onClick={() => setIsModalOpen(true)}>+ Novo Projeto</Button>
-        }
+        actions={<Button onClick={() => setCreateOpen(true)}>+ Novo Projeto</Button>}
       />
 
-      {isLoading ? (
-        <div className="flex justify-center py-16">
-          <Spinner />
-        </div>
-      ) : (
-        <div className="grid gap-3">
-          {projetos?.map((projeto) => (
-            <div
-              key={projeto.id}
-              className="bg-dark-800 border border-white/10 rounded-xl p-4 flex items-center justify-between hover:border-white/20 transition-colors"
-            >
-              <div>
-                <p className="font-medium text-white">{projeto.name}</p>
-                <p className="text-xs text-white/40 mt-0.5">{projeto.cliente?.name}</p>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="secondary"
-                  onClick={() => navigate(`/projetos/${projeto.id}`)}
-                >
-                  Ver detalhes
-                </Button>
-                <Button variant="danger" onClick={() => setDeleteId(projeto.id)}>
-                  Remover
-                </Button>
-              </div>
-            </div>
-          ))}
-          {projetos?.length === 0 && (
-            <p className="text-center text-white/40 py-16">
-              Nenhum projeto cadastrado.
-            </p>
-          )}
-        </div>
-      )}
+      <DataTable table={table} isLoading={isLoading} emptyMessage="Nenhum projeto cadastrado." />
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Novo Projeto"
-      >
+      <Modal isOpen={createOpen} onClose={() => setCreateOpen(false)} title="Novo Projeto">
         <div className="space-y-4 mb-4">
           <Input
             label="Nome do projeto"
@@ -98,22 +137,54 @@ export default function ProjetosPage() {
           />
           <Select
             label="Cliente"
-            value={selectedClienteId}
-            onChange={(e) => setSelectedClienteId(Number(e.target.value) || '')}
+            value={newClienteId}
+            onChange={(e) => setNewClienteId(Number(e.target.value) || '')}
             options={clienteOptions}
             className="w-full"
           />
         </div>
         <div className="flex justify-end gap-3">
-          <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
+          <Button variant="secondary" onClick={() => setCreateOpen(false)}>
             Cancelar
           </Button>
           <Button
             onClick={handleCreate}
             isLoading={createProjeto.isPending}
-            disabled={!newName.trim() || !selectedClienteId}
+            disabled={!newName.trim() || !newClienteId}
           >
             Criar
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal isOpen={!!editProjeto} onClose={() => setEditProjeto(null)} title="Editar Projeto">
+        <div className="space-y-4 mb-4">
+          <Input
+            label="Nome do projeto"
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+            placeholder="Ex: Sistema ERP"
+            className="w-full"
+            autoFocus
+          />
+          <Select
+            label="Cliente"
+            value={editClienteId}
+            onChange={(e) => setEditClienteId(Number(e.target.value) || '')}
+            options={clienteOptions}
+            className="w-full"
+          />
+        </div>
+        <div className="flex justify-end gap-3">
+          <Button variant="secondary" onClick={() => setEditProjeto(null)}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleEdit}
+            isLoading={updateProjeto.isPending}
+            disabled={!editName.trim() || !editClienteId}
+          >
+            Salvar
           </Button>
         </div>
       </Modal>

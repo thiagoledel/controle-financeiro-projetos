@@ -32,6 +32,25 @@ export function useCreateProjeto() {
       queryClient.invalidateQueries({ queryKey: projetoKeys.all });
       toast.success('Projeto criado com sucesso!');
     },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+export function useUpdateProjeto() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, dto }: { id: number; dto: Partial<CreateProjetoDto> }) =>
+      projetosService.update(id, dto),
+    onSuccess: (_data, { id }) => {
+      queryClient.invalidateQueries({ queryKey: projetoKeys.all });
+      queryClient.invalidateQueries({ queryKey: projetoKeys.detail(id) });
+      toast.success('Projeto atualizado com sucesso!');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
   });
 }
 
@@ -42,6 +61,9 @@ export function useDeleteProjeto() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: projetoKeys.all });
       toast.success('Projeto removido com sucesso!');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 }

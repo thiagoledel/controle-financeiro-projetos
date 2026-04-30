@@ -1,26 +1,38 @@
 import { ButtonHTMLAttributes, forwardRef } from 'react';
 
-type Variant = 'primary' | 'secondary' | 'danger' | 'ghost';
+type Variant = 'primary' | 'danger' | 'ghost' | 'secondary';
+type Size = 'sm' | 'md' | 'lg';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
+  size?: Size;
   isLoading?: boolean;
 }
 
 const variantClasses: Record<Variant, string> = {
   primary:   'bg-primary-700 hover:bg-primary-900 text-white',
-  secondary: 'bg-transparent hover:bg-white/10 text-white border border-white/20',
   danger:    'bg-danger-500 hover:bg-danger-900 text-white',
   ghost:     'hover:bg-white/10 text-white/70 hover:text-white',
+  secondary: 'bg-transparent hover:bg-white/10 text-white border border-white/20',
 };
 
-// Botão reutilizável com variantes visuais e indicador de carregamento.
+const sizeClasses: Record<Size, string> = {
+  sm: 'px-3 py-1.5 text-xs',
+  md: 'px-4 py-2 text-sm',
+  lg: 'px-6 py-3 text-base',
+};
+
+// Botão reutilizável com variantes visuais, tamanhos e indicador de carregamento.
+// Quando isLoading=true o botão é desabilitado automaticamente.
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'primary', isLoading, children, className = '', disabled, ...props }, ref) => (
+  (
+    { variant = 'primary', size = 'md', isLoading, children, className = '', disabled, ...props },
+    ref,
+  ) => (
     <button
       ref={ref}
       disabled={disabled ?? isLoading}
-      className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${variantClasses[variant]} ${className}`}
+      className={`rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
       {...props}
     >
       {isLoading && (

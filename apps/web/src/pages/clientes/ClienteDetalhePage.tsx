@@ -1,10 +1,9 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import PageHeader from '../../components/layout/PageHeader';
 import { Button } from '../../components/ui/Button';
 import { Spinner } from '../../components/ui/Spinner';
 import { useCliente } from '../../hooks/useClientes';
 
-// Página de detalhes de um cliente: exibe os projetos vinculados.
 export default function ClienteDetalhePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -19,16 +18,14 @@ export default function ClienteDetalhePage() {
   }
 
   if (!cliente) {
-    return (
-      <p className="text-center text-white/40 py-16">Cliente não encontrado.</p>
-    );
+    return <p className="text-center text-white/40 py-16">Cliente não encontrado.</p>;
   }
 
   return (
     <div>
       <PageHeader
         title={cliente.name}
-        subtitle="Detalhes do cliente"
+        subtitle={`${cliente.projects?.length ?? 0} projeto(s) vinculado(s)`}
         actions={
           <Button variant="secondary" onClick={() => navigate('/clientes')}>
             ← Voltar
@@ -44,14 +41,17 @@ export default function ClienteDetalhePage() {
         ) : (
           <div className="grid gap-3">
             {cliente.projects.map((projeto) => (
-              <div
+              <Link
                 key={projeto.id}
-                className="bg-dark-900 border border-white/10 rounded-lg p-4 flex items-center justify-between hover:border-white/20 transition-colors cursor-pointer"
-                onClick={() => navigate(`/projetos/${projeto.id}`)}
+                to={`/projetos/${projeto.id}`}
+                className="bg-dark-900 border border-white/10 rounded-lg p-4 flex items-center justify-between hover:border-white/20 hover:bg-white/5 transition-colors"
               >
-                <p className="font-medium text-white">{projeto.name}</p>
+                <div>
+                  <p className="font-medium text-white">{projeto.name}</p>
+                  <p className="text-xs text-white/40 mt-0.5">#{projeto.id}</p>
+                </div>
                 <span className="text-white/40 text-sm">Ver →</span>
-              </div>
+              </Link>
             ))}
           </div>
         )}

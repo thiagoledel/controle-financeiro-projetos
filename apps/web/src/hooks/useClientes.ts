@@ -32,6 +32,9 @@ export function useCreateCliente() {
       queryClient.invalidateQueries({ queryKey: clienteKeys.all });
       toast.success('Cliente criado com sucesso!');
     },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
   });
 }
 
@@ -45,6 +48,9 @@ export function useUpdateCliente() {
       queryClient.invalidateQueries({ queryKey: clienteKeys.detail(id) });
       toast.success('Cliente atualizado com sucesso!');
     },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
   });
 }
 
@@ -55,6 +61,9 @@ export function useDeleteCliente() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: clienteKeys.all });
       toast.success('Cliente removido com sucesso!');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 }

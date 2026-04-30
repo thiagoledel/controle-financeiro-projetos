@@ -1,14 +1,17 @@
-import { useNavigate } from 'react-router-dom';
-import { Button } from '../components/ui/Button';
+import { Link } from 'react-router-dom';
 
-// Página de erro 404 — rota não encontrada pelo React Router.
 export default function NotFoundPage() {
-  const navigate = useNavigate();
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-      <h1 className="text-7xl font-bold text-white/10">404</h1>
-      <p className="text-white/50">Página não encontrada</p>
-      <Button onClick={() => navigate('/')}>Ir para o início</Button>
+    <div className="flex flex-col items-center justify-center py-24 text-center">
+      <p className="text-8xl font-bold text-white/10 mb-4 leading-none">404</p>
+      <h1 className="text-2xl font-semibold text-white mb-2">Página não encontrada</h1>
+      <p className="text-white/50 mb-8">A rota que você acessou não existe.</p>
+      <Link
+        to="/clientes"
+        className="px-5 py-2.5 bg-primary-700 hover:bg-primary-900 text-white rounded-lg text-sm font-medium transition-colors"
+      >
+        Voltar ao início
+      </Link>
     </div>
   );
 }
